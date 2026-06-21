@@ -6,11 +6,11 @@ const workoutPlans = [
   {
     id: "push",
     kind: "strength",
-    tag: "第 1 练",
-    short: "推",
-    name: "上肢推 · 胸肩三头",
-    subtitle: "胸、肩、肱三头肌",
-    duration: 95,
+    tag: "力量训练",
+    short: "胸",
+    name: "胸 + 中束",
+    subtitle: "胸部、三角肌中束、核心",
+    duration: 90,
     sections: [
       { title: "动态热身与拉伸", items: [
         ["肩胛绕环与弹力带拉伸", "2 × 12"],
@@ -18,23 +18,23 @@ const workoutPlans = [
         ["空杆卧推热身", "2 组"]
       ]},
       { title: "力量训练", items: [
-        ["杠铃 / 哑铃卧推", "4 × 6–10"],
-        ["上斜哑铃卧推", "3 × 8–12"],
-        ["坐姿肩推", "3 × 8–12"],
-        ["绳索夹胸", "3 × 12–15"],
-        ["侧平举", "4 × 12–15"],
-        ["绳索下压", "3 × 10–15"]
+        ["杠铃 / 哑铃卧推", "4 × 8"],
+        ["上斜卧推", "4 × 10"],
+        ["绳索夹胸 / 双杠臂屈伸", "4 × 12"],
+        ["Y 字侧平举", "4 × 12"],
+        ["绳索直臂下压", "4 × 10"],
+        ["仰卧举腿", "4 × 15"]
       ]}
     ]
   },
   {
     id: "pull",
     kind: "strength",
-    tag: "第 2 练",
-    short: "拉",
-    name: "上肢拉 · 背部二头",
-    subtitle: "背、后肩、肱二头肌",
-    duration: 95,
+    tag: "力量训练",
+    short: "背",
+    name: "背 + 后束",
+    subtitle: "背部、三角肌后束、核心",
+    duration: 90,
     sections: [
       { title: "动态热身与拉伸", items: [
         ["猫牛式与胸椎旋转", "各 60 秒"],
@@ -42,23 +42,45 @@ const workoutPlans = [
         ["轻重量划船热身", "2 组"]
       ]},
       { title: "力量训练", items: [
-        ["高位下拉 / 辅助引体", "4 × 8–12"],
-        ["坐姿绳索划船", "4 × 8–12"],
-        ["单臂哑铃划船", "3 × 10–12"],
-        ["面拉", "3 × 12–15"],
-        ["反向飞鸟", "3 × 12–15"],
-        ["哑铃弯举", "3 × 10–12"]
+        ["单手钢线下拉", "4 × 12"],
+        ["单手器械划船", "4 × 12"],
+        ["对握下压", "4 × 10"],
+        ["开肘拉", "4 × 12"],
+        ["弯举", "4 × 10"],
+        ["仰卧举腿", "4 × 15"]
+      ]}
+    ]
+  },
+  {
+    id: "shoulders",
+    kind: "strength",
+    tag: "力量训练",
+    short: "肩",
+    name: "肩部",
+    subtitle: "肩部、下背部",
+    duration: 75,
+    sections: [
+      { title: "动态热身与拉伸", items: [
+        ["肩胛绕环与弹力带拉伸", "2 × 12"],
+        ["胸椎旋转与扩胸", "每侧 45 秒"],
+        ["空杆卧推热身", "2 组"]
+      ]},
+      { title: "力量训练", items: [
+        ["实力推", "4 × 10"],
+        ["侧平举", "4 × 12"],
+        ["开肘拉", "4 × 12"],
+        ["反向山羊挺身", "4 × 15"]
       ]}
     ]
   },
   {
     id: "legs",
     kind: "strength",
-    tag: "第 3 练",
+    tag: "力量训练",
     short: "腿",
-    name: "下肢 · 腿臀核心",
-    subtitle: "股四头、臀腿后侧、核心",
-    duration: 100,
+    name: "腿部",
+    subtitle: "股四头、臀腿后侧、下背部",
+    duration: 90,
     sections: [
       { title: "动态热身与拉伸", items: [
         ["髋关节环绕与腿摆动", "每侧 45 秒"],
@@ -66,19 +88,18 @@ const workoutPlans = [
         ["徒手深蹲激活", "2 × 12"]
       ]},
       { title: "力量训练", items: [
-        ["深蹲 / 腿举", "4 × 6–10"],
-        ["罗马尼亚硬拉", "4 × 8–12"],
-        ["保加利亚分腿蹲", "3 × 8–12"],
-        ["臀推", "3 × 8–12"],
-        ["腿弯举", "3 × 12–15"],
-        ["平板支撑", "3 × 40–60 秒"]
+        ["单腿硬拉", "4 × 12"],
+        ["保加利亚深蹲", "4 × 10"],
+        ["颈前深蹲 / 哈克深蹲", "4 × 10"],
+        ["罗马尼亚硬拉", "3 × 12"],
+        ["山羊挺身", "3 × 10"]
       ]}
     ]
   },
   {
     id: "flex",
     kind: "flex",
-    tag: "第 4 练 · 可选",
+    tag: "自由活动 · 可选",
     short: "趣",
     name: "自由活动日",
     subtitle: "课程、游泳、攀岩或户外",
@@ -138,6 +159,10 @@ function nextWorkout() {
   return workoutPlans.find((plan) => !completedIds.has(plan.id)) || workoutPlans[0];
 }
 
+function flexWorkout() {
+  return workoutPlans.find((plan) => plan.id === "flex");
+}
+
 function formatDate(dateKey, includeYear = false) {
   const date = new Date(`${dateKey}T12:00:00`);
   return new Intl.DateTimeFormat("zh-CN", {
@@ -185,21 +210,21 @@ function renderDashboard() {
   const hours = now.getHours();
   const plan = nextWorkout();
   const weekRecords = recordsThisWeek();
-  const uniqueDone = new Set(weekRecords.map((record) => record.planId)).size;
+  const completedSessions = Math.min(weekRecords.length, 4);
   const name = state.profile?.name?.trim() || "训练者";
 
   document.querySelector("#todayLabel").textContent = new Intl.DateTimeFormat("zh-CN", { month: "long", day: "numeric", weekday: "long" }).format(now);
   document.querySelector("#greeting").textContent = hours < 11 ? "早上好" : hours < 18 ? "下午好" : "晚上好";
   document.querySelector("#displayName").textContent = name;
   document.querySelector("#avatarInitial").textContent = name.slice(0, 1);
-  document.querySelector("#weekDone").textContent = uniqueDone;
-  document.querySelector("#weekRing").style.strokeDashoffset = 239 - Math.min(uniqueDone, 4) / 4 * 239;
-  document.querySelector("#nextSessionTag").textContent = uniqueDone >= 4 ? "本周已完成" : plan.tag;
-  document.querySelector("#nextSessionName").textContent = uniqueDone >= 4 ? "做得好，安排一次主动恢复" : plan.name;
-  document.querySelector("#nextSessionDuration").textContent = `约 ${uniqueDone >= 4 ? 35 : plan.duration} 分钟`;
-  document.querySelector("#nextSessionFlow").innerHTML = flowMarkup(uniqueDone >= 4 ? workoutPlans[3] : plan);
-  document.querySelector("#startNextWorkout").innerHTML = `${uniqueDone >= 4 ? "记录一次恢复活动" : "开始今天的训练"}<svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>`;
-  document.querySelector("#startNextWorkout").dataset.planId = uniqueDone >= 4 ? "flex" : plan.id;
+  document.querySelector("#weekDone").textContent = completedSessions;
+  document.querySelector("#weekRing").style.strokeDashoffset = 239 - completedSessions / 4 * 239;
+  document.querySelector("#nextSessionTag").textContent = completedSessions >= 4 ? "本周已完成" : plan.tag;
+  document.querySelector("#nextSessionName").textContent = completedSessions >= 4 ? "做得好，安排一次主动恢复" : plan.name;
+  document.querySelector("#nextSessionDuration").textContent = `约 ${completedSessions >= 4 ? 35 : plan.duration} 分钟`;
+  document.querySelector("#nextSessionFlow").innerHTML = flowMarkup(completedSessions >= 4 ? flexWorkout() : plan);
+  document.querySelector("#startNextWorkout").innerHTML = `${completedSessions >= 4 ? "记录一次恢复活动" : "开始今天的训练"}<svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>`;
+  document.querySelector("#startNextWorkout").dataset.planId = completedSessions >= 4 ? "flex" : plan.id;
 
   renderWeekStrip();
   renderRecentRecords();
@@ -236,7 +261,7 @@ function renderRecentRecords() {
     return;
   }
   container.innerHTML = records.map((record) => {
-    const plan = workoutPlans.find((item) => item.id === record.planId) || workoutPlans[3];
+    const plan = workoutPlans.find((item) => item.id === record.planId) || flexWorkout();
     return `<article class="record-row">
       <span class="record-symbol">${plan.short}</span>
       <div class="record-main"><strong>${record.name}</strong><span>${formatDate(record.date)}</span></div>
@@ -438,14 +463,13 @@ function calculateStreak() {
   const weeklyCounts = new Map();
   state.records.forEach((record) => {
     const monday = localDateKey(startOfWeek(new Date(`${record.date}T12:00:00`)));
-    if (!weeklyCounts.has(monday)) weeklyCounts.set(monday, new Set());
-    weeklyCounts.get(monday).add(record.planId);
+    weeklyCounts.set(monday, (weeklyCounts.get(monday) || 0) + 1);
   });
   let streak = 0;
   let cursor = startOfWeek();
   // Current week can count while in progress; past weeks require at least 3 sessions.
   for (let index = 0; index < 52; index += 1) {
-    const count = weeklyCounts.get(localDateKey(cursor))?.size || 0;
+    const count = weeklyCounts.get(localDateKey(cursor)) || 0;
     if (count >= (index === 0 ? 1 : 3)) streak += 1;
     else if (index > 0 || count === 0) break;
     cursor.setDate(cursor.getDate() - 7);

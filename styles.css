@@ -231,8 +231,9 @@ h1, h2, p { margin-top: 0; }
 .plan-card-top { display: grid; grid-template-columns: 45px 1fr auto; align-items: center; gap: 12px; }
 .plan-index { width: 45px; height: 45px; border-radius: 14px; display: grid; place-items: center; color: white; background: var(--green); font-weight: 800; }
 .plan-card:nth-child(2) .plan-index { background: #6c826f; }
-.plan-card:nth-child(3) .plan-index { background: #b47b50; }
-.plan-card:nth-child(4) .plan-index { color: var(--ink); background: var(--lime); }
+.plan-card:nth-child(3) .plan-index { background: #54798a; }
+.plan-card:nth-child(4) .plan-index { background: #b47b50; }
+.plan-card:nth-child(5) .plan-index { color: var(--ink); background: var(--lime); }
 .plan-card h2 { margin: 0 0 3px; font-size: 17px; letter-spacing: -.03em; }
 .plan-card-top p { margin: 0; color: var(--muted); font-size: 11px; }
 .expand-button { width: 34px; height: 34px; border: 0; border-radius: 50%; display: grid; place-items: center; background: var(--cream); cursor: pointer; }
