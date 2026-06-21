@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#19342d">
+  <meta name="description" content="一款围绕每周三分化训练、灵活运动与饮食目标的手机健身打卡应用。">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="循练">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/app-icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/app-icon-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Noto+Sans+SC:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <title>循练 · 健身计划</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#today" aria-label="循练首页">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M7 7.5v9M17 7.5v9M4.5 10v4M19.5 10v4M7 12h10"/></svg>
+        </span>
+        <span>循练</span>
+      </a>
+      <div class="topbar-actions">
+        <button class="icon-button install-button" id="installButton" type="button" hidden aria-label="安装应用">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3"/></svg>
+        </button>
+        <button class="avatar-button" id="profileShortcut" type="button" aria-label="打开身体档案">
+          <span id="avatarInitial">我</span>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <section class="view active" id="todayView" data-view="today">
+        <div class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow" id="todayLabel">今天</p>
+            <h1><span id="greeting">晚上好</span>，<span id="displayName">训练者</span></h1>
+            <p class="hero-subtitle" id="heroSubtitle">让训练留下痕迹，让身体慢慢回答。</p>
+          </div>
+          <div class="week-ring" aria-label="本周训练进度">
+            <svg viewBox="0 0 92 92" aria-hidden="true">
+              <circle class="ring-track" cx="46" cy="46" r="38"></circle>
+              <circle class="ring-value" id="weekRing" cx="46" cy="46" r="38"></circle>
+            </svg>
+            <div><strong id="weekDone">0</strong><span>/ 4</span></div>
+          </div>
+        </div>
+
+        <article class="next-card" id="nextWorkoutCard">
+          <div class="next-card-head">
+            <div>
+              <span class="pill pill-light" id="nextSessionTag">第 1 练</span>
+              <h2 id="nextSessionName">上肢推 · 胸肩三头</h2>
+            </div>
+            <span class="duration" id="nextSessionDuration">约 90 分钟</span>
+          </div>
+          <div class="session-flow" id="nextSessionFlow"></div>
+          <button class="primary-button light-button" id="startNextWorkout" type="button">
+            开始今天的训练
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+          </button>
+        </article>
+
+        <section class="section-block">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Weekly rhythm</p>
+              <h2>本周节奏</h2>
+            </div>
+            <button class="text-button" type="button" data-navigate="plan">查看计划</button>
+          </div>
+          <div class="week-strip" id="weekStrip"></div>
+        </section>
+
+        <section class="metric-grid">
+          <article class="metric-card nutrition-card">
+            <div class="metric-icon warm" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 3v18M8 6c0 3 1.8 5 4 5M16 6c0 3-1.8 5-4 5"/></svg>
+            </div>
+            <div>
+              <span>每日目标</span>
+              <strong><span id="calorieMini">--</span> <small>kcal</small></strong>
+              <p id="goalMini">完善档案后计算</p>
+            </div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-icon cool" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 19h16M7 16l3-4 3 2 4-6"/></svg>
+            </div>
+            <div>
+              <span>连续打卡</span>
+              <strong><span id="streakMini">0</span> <small>周</small></strong>
+              <p id="streakText">从这一周开始</p>
+            </div>
+          </article>
+        </section>
+
+        <section class="section-block recent-section">
+          <div class="section-heading compact">
+            <h2>最近记录</h2>
+            <button class="text-button" type="button" data-navigate="history">全部记录</button>
+          </div>
+          <div id="recentRecords" class="record-list"></div>
+        </section>
+      </section>
+
+      <section class="view" id="planView" data-view="plan">
+        <div class="page-heading">
+          <p class="eyebrow">Your weekly plan</p>
+          <h1>3 + 1 训练计划</h1>
+          <p>前三练按三分化推进，第四练把选择权留给身体和生活。</p>
+        </div>
+        <div class="notice-card">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5m0 4h.01M10.3 4.4 3.2 17a2 2 0 0 0 1.7 3h14.2a2 2 0 0 0 1.7-3L13.7 4.4a2 2 0 0 0-3.4 0Z"/></svg>
+          <p>当前是可编辑的通用三分化参考模板，并非谭成义老师发布的官方逐字课表。训练前请结合伤病史与教练建议调整。</p>
+        </div>
+        <div class="plan-list" id="planList"></div>
+      </section>
+
+      <section class="view" id="nutritionView" data-view="nutrition">
+        <div class="page-heading nutrition-heading">
+          <p class="eyebrow">Fuel your progress</p>
+          <h1>饮食目标</h1>
+          <p>先定方向，再让每一餐为训练服务。</p>
+        </div>
+
+        <div class="goal-switch" role="group" aria-label="训练目标">
+          <button type="button" data-goal="cut">减脂期</button>
+          <button type="button" data-goal="gain">增肌期</button>
+        </div>
+
+        <article class="calorie-card">
+          <div class="calorie-top">
+            <span>建议每日摄入</span>
+            <button class="icon-button small" id="editProfileFromNutrition" type="button" aria-label="编辑身体数据">
+              <svg viewBox="0 0 24 24"><path d="m4 16-.8 4 4-.8L18 8.4 15.6 6 4 16Z"/><path d="m14 7 3 3"/></svg>
+            </button>
+          </div>
+          <strong class="calorie-number" id="calorieTarget">--</strong>
+          <span class="calorie-unit">千卡 / 天</span>
+          <div class="calorie-scale">
+            <span>基础代谢 <strong id="bmrValue">--</strong></span>
+            <span>维持热量 <strong id="tdeeValue">--</strong></span>
+          </div>
+        </article>
+
+        <div class="macro-grid">
+          <article class="macro-card protein">
+            <span class="macro-dot"></span>
+            <strong id="proteinValue">--g</strong>
+            <span>蛋白质</span>
+          </article>
+          <article class="macro-card carb">
+            <span class="macro-dot"></span>
+            <strong id="carbValue">--g</strong>
+            <span>碳水</span>
+          </article>
+          <article class="macro-card fat">
+            <span class="macro-dot"></span>
+            <strong id="fatValue">--g</strong>
+            <span>脂肪</span>
+          </article>
+        </div>
+
+        <article class="meal-guide">
+          <div class="section-heading compact">
+            <div>
+              <p class="eyebrow">Simple plate</p>
+              <h2>一日分配参考</h2>
+            </div>
+          </div>
+          <div class="meal-bars" id="mealBars"></div>
+        </article>
+
+        <article class="tip-card">
+          <span>训练日小提示</span>
+          <p id="nutritionTip">完善身体档案后，这里会给出与你目标匹配的建议。</p>
+        </article>
+
+        <p class="medical-note">热量结果为公式估算，不替代医生或注册营养师的建议。若有代谢疾病、进食障碍史、孕期或其他特殊状况，请先咨询专业人士。</p>
+      </section>
+
+      <section class="view" id="historyView" data-view="history">
+        <div class="page-heading">
+          <p class="eyebrow">Keep showing up</p>
+          <h1>训练记录</h1>
+          <p>不追求每次完美，只记录每次出现。</p>
+        </div>
+        <div class="history-stats">
+          <article><span>累计训练</span><strong id="totalWorkouts">0</strong></article>
+          <article><span>累计时长</span><strong><span id="totalMinutes">0</span><small> 分钟</small></strong></article>
+          <article><span>本月完成</span><strong id="monthWorkouts">0</strong></article>
+        </div>
+        <div class="history-toolbar">
+          <select id="historyFilter" aria-label="筛选记录">
+            <option value="all">全部类型</option>
+            <option value="strength">力量训练</option>
+            <option value="flex">自由活动</option>
+          </select>
+          <button class="secondary-button" id="exportData" type="button">导出数据</button>
+        </div>
+        <div id="historyRecords" class="history-list"></div>
+      </section>
+
+      <section class="view" id="profileView" data-view="profile">
+        <div class="page-heading">
+          <p class="eyebrow">Know your baseline</p>
+          <h1>身体档案</h1>
+          <p>数据只保存在这台设备中，用于估算你的饮食目标。</p>
+        </div>
+        <form class="profile-form" id="profileForm">
+          <label class="field full">
+            <span>怎么称呼你</span>
+            <input type="text" name="name" maxlength="12" placeholder="训练者">
+          </label>
+          <div class="field full">
+            <span>生理性别 <small>用于基础代谢公式</small></span>
+            <div class="segmented-control">
+              <label><input type="radio" name="sex" value="female" checked><span>女性</span></label>
+              <label><input type="radio" name="sex" value="male"><span>男性</span></label>
+            </div>
+          </div>
+          <label class="field">
+            <span>年龄</span>
+            <div class="input-unit"><input type="number" name="age" min="16" max="90" inputmode="numeric" required><em>岁</em></div>
+          </label>
+          <label class="field">
+            <span>身高</span>
+            <div class="input-unit"><input type="number" name="height" min="130" max="230" step="0.1" inputmode="decimal" required><em>cm</em></div>
+          </label>
+          <label class="field">
+            <span>体重</span>
+            <div class="input-unit"><input type="number" name="weight" min="35" max="250" step="0.1" inputmode="decimal" required><em>kg</em></div>
+          </label>
+          <label class="field">
+            <span>体脂率 <small>选填</small></span>
+            <div class="input-unit"><input type="number" name="bodyFat" min="5" max="60" step="0.1" inputmode="decimal"><em>%</em></div>
+          </label>
+          <label class="field full">
+            <span>日常活动量 <small>不含健身训练</small></span>
+            <select name="activity">
+              <option value="1.2">久坐为主 · 通勤少</option>
+              <option value="1.35" selected>轻度活动 · 日常会走动</option>
+              <option value="1.5">中度活动 · 经常走动</option>
+              <option value="1.7">高度活动 · 体力工作</option>
+            </select>
+          </label>
+          <div class="field full">
+            <span>当前阶段</span>
+            <div class="segmented-control goal-control">
+              <label><input type="radio" name="goal" value="cut" checked><span>减脂期</span></label>
+              <label><input type="radio" name="goal" value="gain"><span>增肌期</span></label>
+            </div>
+          </div>
+          <button class="primary-button full" type="submit">保存并计算目标</button>
+          <button class="danger-link full" id="clearData" type="button">清除本机全部数据</button>
+        </form>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="主导航">
+      <button class="active" type="button" data-navigate="today">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1v-9Z"/></svg>
+        <span>今天</span>
+      </button>
+      <button type="button" data-navigate="plan">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v3M18 3v3M4 8h16M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1Z"/><path d="m8 14 2 2 5-5"/></svg>
+        <span>计划</span>
+      </button>
+      <button type="button" data-navigate="nutrition">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v7a3 3 0 0 0 3 3V4M7 8h3M16 4c-2 3-2 7 1 9v7M7 14v6"/></svg>
+        <span>饮食</span>
+      </button>
+      <button type="button" data-navigate="history">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+        <span>记录</span>
+      </button>
+    </nav>
+  </div>
+
+  <div class="modal-backdrop" id="workoutModal" hidden>
+    <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="workoutTitle">
+      <div class="modal-handle"></div>
+      <header class="modal-header">
+        <div>
+          <span class="pill" id="workoutTag">第 1 练</span>
+          <h2 id="workoutTitle">上肢推</h2>
+        </div>
+        <button class="icon-button modal-close" type="button" data-close-modal aria-label="关闭">
+          <svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+      <div class="modal-content">
+        <div class="session-progress"><span id="sessionProgressBar"></span></div>
+        <p class="progress-copy"><strong id="sessionProgressText">0 / 0</strong> 项已完成</p>
+        <div id="workoutChecklist"></div>
+        <div class="workout-notes">
+          <label for="workoutNote">训练感受</label>
+          <textarea id="workoutNote" rows="2" maxlength="120" placeholder="今天状态、重量或需要调整的地方…"></textarea>
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button class="primary-button" id="completeWorkout" type="button">完成并打卡</button>
+      </footer>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
