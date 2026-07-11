@@ -109,6 +109,16 @@ const workoutPlans = [
 ];
 
 const cardioChoices = ["爬坡", "游泳", "水中行走", "椭圆机"];
+const customPlanTemplate = {
+  id: "custom",
+  kind: "strength",
+  tag: "自由编排",
+  short: "写",
+  name: "今日自定义训练",
+  subtitle: "自己填写运动项目、动作细节和时长",
+  duration: 75,
+  sections: []
+};
 const state = loadState();
 let activeWorkout = null;
 let installPrompt = null;
@@ -154,13 +164,22 @@ function recordsThisWeek() {
   });
 }
 
-function nextWorkout() {
-  const completedIds = new Set(recordsThisWeek().map((record) => record.planId));
-  return workoutPlans.find((plan) => !completedIds.has(plan.id)) || workoutPlans[0];
+function customWorkout() {
+  return { ...customPlanTemplate, sections: [] };
 }
 
-function flexWorkout() {
-  return workoutPlans.find((plan) => plan.id === "flex");
+function workoutById(planId) {
+  return planId === "custom" ? customWorkout() : workoutPlans.find((item) => item.id === planId);
+}
+
+function planExerciseItems(plan) {
+  if (plan.id === "custom") return [{ name: "", detail: "", done: false }];
+  if (plan.kind === "flex") {
+    return [{ name: plan.activities?.[0] || "", detail: "自由安排", done: false }];
+  }
+  return plan.sections.flatMap((section) => (
+    section.items.map(([name, detail]) => ({ name, detail, done: false, group: section.title }))
+  ));
 }
 
 function formatDate(dateKey, includeYear = false) {
@@ -195,7 +214,9 @@ function navigate(viewName) {
 }
 
 function flowMarkup(plan) {
-  const flows = plan.kind === "flex"
+  const flows = plan.id === "custom"
+    ? [["计划", "M6 4h12v16H6zM9 8h6M9 12h6M9 16h4"], ["填写", "m4 16-.8 4 4-.8L18 8.4 15.6 6 4 16Z"], ["打卡", "m5 12 4 4L19 6"]]
+    : plan.kind === "flex"
     ? [["选择", "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-13v4l3 2"], ["畅动", "M7 17 10 7l4 10 3-8"], ["恢复", "M12 20c4-3 7-6 7-11-4 0-6 2-7 4-1-2-3-4-7-4 0 5 3 8 7 11Z"]]
     : [["拉伸", "M5 12h14M8 8l-3 4 3 4m8-8 3 4-3 4"], ["力量", "M7 7v10m10-10v10M4 10v4m16-4v4M7 12h10"], ["有氧", "M4 14h3l2-5 4 9 2-6h5"]];
   return flows.map(([label, path]) => `
@@ -208,10 +229,10 @@ function flowMarkup(plan) {
 function renderDashboard() {
   const now = new Date();
   const hours = now.getHours();
-  const plan = nextWorkout();
   const weekRecords = recordsThisWeek();
   const completedSessions = Math.min(weekRecords.length, 4);
   const name = state.profile?.name?.trim() || "训练者";
+  const todayPlan = customWorkout();
 
   document.querySelector("#todayLabel").textContent = new Intl.DateTimeFormat("zh-CN", { month: "long", day: "numeric", weekday: "long" }).format(now);
   document.querySelector("#greeting").textContent = hours < 11 ? "早上好" : hours < 18 ? "下午好" : "晚上好";
@@ -219,12 +240,12 @@ function renderDashboard() {
   document.querySelector("#avatarInitial").textContent = name.slice(0, 1);
   document.querySelector("#weekDone").textContent = completedSessions;
   document.querySelector("#weekRing").style.strokeDashoffset = 239 - completedSessions / 4 * 239;
-  document.querySelector("#nextSessionTag").textContent = completedSessions >= 4 ? "本周已完成" : plan.tag;
-  document.querySelector("#nextSessionName").textContent = completedSessions >= 4 ? "做得好，安排一次主动恢复" : plan.name;
-  document.querySelector("#nextSessionDuration").textContent = `约 ${completedSessions >= 4 ? 35 : plan.duration} 分钟`;
-  document.querySelector("#nextSessionFlow").innerHTML = flowMarkup(completedSessions >= 4 ? flexWorkout() : plan);
-  document.querySelector("#startNextWorkout").innerHTML = `${completedSessions >= 4 ? "记录一次恢复活动" : "开始今天的训练"}<svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>`;
-  document.querySelector("#startNextWorkout").dataset.planId = completedSessions >= 4 ? "flex" : plan.id;
+  document.querySelector("#nextSessionTag").textContent = completedSessions >= 4 ? "本周已达标" : todayPlan.tag;
+  document.querySelector("#nextSessionName").textContent = completedSessions >= 4 ? "继续记录恢复或加练" : "填写今天的训练计划";
+  document.querySelector("#nextSessionDuration").textContent = "自定时长";
+  document.querySelector("#nextSessionFlow").innerHTML = flowMarkup(todayPlan);
+  document.querySelector("#startNextWorkout").innerHTML = `${completedSessions >= 4 ? "继续记录" : "填写今日计划"}<svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>`;
+  document.querySelector("#startNextWorkout").dataset.planId = "custom";
 
   renderWeekStrip();
   renderRecentRecords();
@@ -253,6 +274,12 @@ function renderWeekStrip() {
   }).join("");
 }
 
+function recordSymbol(record) {
+  const plan = workoutPlans.find((item) => item.id === record.planId);
+  if (plan) return plan.short;
+  return (record.name || "练").trim().slice(0, 1) || "练";
+}
+
 function renderRecentRecords() {
   const container = document.querySelector("#recentRecords");
   const records = [...state.records].sort((a, b) => b.createdAt - a.createdAt).slice(0, 3);
@@ -261,10 +288,9 @@ function renderRecentRecords() {
     return;
   }
   container.innerHTML = records.map((record) => {
-    const plan = workoutPlans.find((item) => item.id === record.planId) || flexWorkout();
     return `<article class="record-row">
-      <span class="record-symbol">${plan.short}</span>
-      <div class="record-main"><strong>${record.name}</strong><span>${formatDate(record.date)}</span></div>
+      <span class="record-symbol">${escapeHtml(recordSymbol(record))}</span>
+      <div class="record-main"><strong>${escapeHtml(record.name)}</strong><span>${formatDate(record.date)}</span></div>
       <span class="record-duration">${record.duration} 分钟</span>
     </article>`;
   }).join("");
@@ -272,19 +298,35 @@ function renderRecentRecords() {
 
 function renderPlanList() {
   const completed = new Set(recordsThisWeek().map((record) => record.planId));
-  document.querySelector("#planList").innerHTML = workoutPlans.map((plan, index) => {
+  const customCard = `<article class="plan-card custom-plan-card open" data-plan-card="custom">
+    <div class="plan-card-top">
+      <span class="plan-index">${customPlanTemplate.short}</span>
+      <div><h2>自定义今日计划</h2><p>不限定部位，自己填写运动项目、动作细节和时长</p></div>
+      <button class="expand-button" type="button" aria-label="展开训练详情" aria-expanded="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+    </div>
+    <div class="plan-details">
+      <div class="detail-section"><h3>可填写内容</h3>
+        <div class="detail-line"><span>当天训练主题</span><span>例如 推、拉、游泳</span></div>
+        <div class="detail-line"><span>运动项目 / 动作</span><span>可新增多项</span></div>
+        <div class="detail-line"><span>具体动作细节</span><span>组次、重量、备注</span></div>
+      </div>
+      <button class="primary-button plan-action" type="button" data-start-plan="custom">从空白开始填写</button>
+    </div>
+  </article>`;
+  const templateCards = workoutPlans.map((plan, index) => {
     const details = plan.kind === "flex"
-      ? `<div class="detail-section"><h3>任选一种</h3>${plan.activities.map((item) => `<div class="detail-line"><span>${item}</span><span>自由安排</span></div>`).join("")}</div>`
-      : plan.sections.map((section) => `<div class="detail-section"><h3>${section.title}</h3>${section.items.map(([name, dose]) => `<div class="detail-line"><span>${name}</span><span>${dose}</span></div>`).join("")}</div>`).join("") + `<div class="detail-section"><h3>练后有氧</h3><div class="detail-line"><span>爬坡 / 游泳 / 水中行走等</span><span>30–60 分钟</span></div></div>`;
-    return `<article class="plan-card ${index === 0 ? "open" : ""} ${completed.has(plan.id) ? "complete" : ""}" data-plan-card="${plan.id}">
+      ? `<div class="detail-section"><h3>常用灵感</h3>${plan.activities.map((item) => `<div class="detail-line"><span>${item}</span><span>打开后可改</span></div>`).join("")}</div>`
+      : plan.sections.map((section) => `<div class="detail-section"><h3>${section.title}</h3>${section.items.map(([name, dose]) => `<div class="detail-line"><span>${name}</span><span>${dose}</span></div>`).join("")}</div>`).join("") + `<div class="detail-section"><h3>练后有氧</h3><div class="detail-line"><span>爬坡 / 游泳 / 水中行走等</span><span>可改可删</span></div></div>`;
+    return `<article class="plan-card ${completed.has(plan.id) ? "complete" : ""}" data-plan-card="${plan.id}">
       <div class="plan-card-top">
         <span class="plan-index">${String(index + 1).padStart(2, "0")}</span>
-        <div><h2>${plan.name}</h2><p>${completed.has(plan.id) ? "本周已完成" : plan.subtitle} · ${plan.duration} 分钟</p></div>
-        <button class="expand-button" type="button" aria-label="展开训练详情" aria-expanded="${index === 0}"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div><h2>${plan.name}</h2><p>${completed.has(plan.id) ? "本周已记录过" : plan.subtitle} · 打开后可编辑</p></div>
+        <button class="expand-button" type="button" aria-label="展开训练详情" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
       </div>
-      <div class="plan-details">${details}<button class="primary-button plan-action" type="button" data-start-plan="${plan.id}">${completed.has(plan.id) ? "再次记录" : "开始训练"}</button></div>
+      <div class="plan-details">${details}<button class="primary-button plan-action" type="button" data-start-plan="${plan.id}">${completed.has(plan.id) ? "再次套用" : "套用并编辑"}</button></div>
     </article>`;
   }).join("");
+  document.querySelector("#planList").innerHTML = customCard + templateCards;
 }
 
 function calculateNutrition(profile) {
@@ -342,46 +384,113 @@ function populateProfileForm() {
 }
 
 function openWorkout(planId) {
-  const plan = workoutPlans.find((item) => item.id === planId);
+  const plan = workoutById(planId);
   if (!plan) return;
   activeWorkout = plan;
   document.querySelector("#workoutTag").textContent = plan.tag;
-  document.querySelector("#workoutTitle").textContent = plan.name;
+  document.querySelector("#workoutTitle").textContent = plan.id === "custom" ? "填写今日计划" : "编辑今日计划";
   document.querySelector("#workoutNote").value = "";
   const checklist = document.querySelector("#workoutChecklist");
-
-  if (plan.kind === "flex") {
-    checklist.innerHTML = `<section class="check-section"><h3>今天想做什么</h3><div class="cardio-options">${plan.activities.map((activity, index) => `<label class="cardio-option"><input type="radio" name="flexActivity" value="${activity}" ${index === 0 ? "checked" : ""}><span>${activity}</span></label>`).join("")}</div></section>
-      <section class="check-section"><h3>活动时长</h3><div class="duration-field"><input type="number" id="flexDuration" min="10" max="480" value="60" inputmode="numeric"><span>分钟</span></div></section>`;
-  } else {
-    checklist.innerHTML = plan.sections.map((section) => `<section class="check-section"><h3>${section.title}</h3>${section.items.map(([name, dose], index) => checkRow(name, dose, `${section.title}-${index}`)).join("")}</section>`).join("") + `
-      <section class="check-section"><h3>练后有氧 · 30–60 分钟</h3>
-        <div class="cardio-options">${cardioChoices.map((choice, index) => `<label class="cardio-option"><input type="radio" name="cardioChoice" value="${choice}" ${index === 0 ? "checked" : ""}><span>${choice}</span></label>`).join("")}</div>
-        <div class="duration-field"><input type="number" id="cardioDuration" min="0" max="180" value="30" inputmode="numeric"><span>分钟</span></div>
-      </section>`;
-  }
-  checklist.querySelectorAll("input").forEach((input) => input.addEventListener("change", updateSessionProgress));
+  const items = planExerciseItems(plan);
+  const title = plan.id === "custom" ? "今日训练" : plan.name;
+  checklist.innerHTML = `
+    <section class="check-section plan-editor">
+      <h3>当天计划</h3>
+      <div class="editor-grid">
+        <label class="editor-field full">
+          <span>计划名称</span>
+          <input type="text" id="sessionNameInput" maxlength="24" value="${escapeHtml(title)}" placeholder="例如 胸肩、游泳、攀岩">
+        </label>
+        <label class="editor-field">
+          <span>训练类型</span>
+          <select id="sessionKindInput">
+            <option value="strength" ${plan.kind !== "flex" ? "selected" : ""}>力量训练</option>
+            <option value="flex" ${plan.kind === "flex" ? "selected" : ""}>自由活动</option>
+          </select>
+        </label>
+        <label class="editor-field">
+          <span>总时长</span>
+          <div class="input-unit compact"><input type="number" id="sessionDurationInput" min="5" max="480" value="${plan.duration}" inputmode="numeric"><em>分钟</em></div>
+        </label>
+      </div>
+    </section>
+    <section class="check-section">
+      <div class="section-title-row">
+        <h3>运动项目 / 动作</h3>
+        <button class="text-button add-exercise-button" type="button" data-add-exercise>+ 添加动作</button>
+      </div>
+      <div class="exercise-list" id="exerciseList">
+        ${items.map((item, index) => exerciseRowMarkup(item, index)).join("")}
+      </div>
+    </section>
+    ${plan.kind === "flex" ? "" : cardioEditorMarkup()}
+  `;
   document.querySelector("#workoutModal").hidden = false;
   document.body.style.overflow = "hidden";
   updateSessionProgress();
 }
 
-function checkRow(name, dose, id) {
-  return `<label class="check-row"><input type="checkbox" data-session-item="${id}" value="${name}"><span class="check-mark"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span><span class="check-name">${name}</span><span class="check-dose">${dose}</span></label>`;
+function cardioEditorMarkup() {
+  return `<section class="check-section cardio-editor">
+    <h3>练后有氧 <small>可选</small></h3>
+    <div class="editor-grid">
+      <label class="editor-field">
+        <span>有氧项目</span>
+        <input type="text" id="cardioName" list="cardioChoiceList" maxlength="16" value="${cardioChoices[0]}" placeholder="爬坡 / 游泳">
+        <datalist id="cardioChoiceList">${cardioChoices.map((choice) => `<option value="${choice}"></option>`).join("")}</datalist>
+      </label>
+      <label class="editor-field">
+        <span>有氧时长</span>
+        <div class="input-unit compact"><input type="number" id="cardioDuration" min="0" max="180" value="30" inputmode="numeric"><em>分钟</em></div>
+      </label>
+    </div>
+  </section>`;
+}
+
+function exerciseRowMarkup(item = {}, index = Date.now()) {
+  return `<div class="exercise-row" data-exercise-row>
+    <label class="exercise-check" aria-label="标记完成">
+      <input type="checkbox" class="exercise-done" ${item.done ? "checked" : ""}>
+      <span class="check-mark"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span>
+    </label>
+    <label class="exercise-input">
+      <span>运动项目</span>
+      <input type="text" data-exercise-name maxlength="32" value="${escapeHtml(item.name || "")}" placeholder="${index === 0 ? "例如 杠铃卧推" : "运动项目"}">
+    </label>
+    <label class="exercise-input detail">
+      <span>具体动作 / 组次</span>
+      <input type="text" data-exercise-detail maxlength="60" value="${escapeHtml(item.detail || "")}" placeholder="例如 4×8 / 60kg / RPE 8">
+    </label>
+    <button class="icon-button row-delete" type="button" data-remove-exercise aria-label="删除动作">
+      <svg viewBox="0 0 24 24"><path d="M6 7h12M10 11v6M14 11v6M9 7l1-3h4l1 3M8 7v13h8V7"/></svg>
+    </button>
+  </div>`;
+}
+
+function addExerciseRow() {
+  document.querySelector("#exerciseList")?.insertAdjacentHTML("beforeend", exerciseRowMarkup({ name: "", detail: "", done: false }));
+  updateSessionProgress();
+}
+
+function removeExerciseRow(button) {
+  const list = document.querySelector("#exerciseList");
+  const rows = [...list.querySelectorAll("[data-exercise-row]")];
+  const row = button.closest("[data-exercise-row]");
+  if (rows.length <= 1) {
+    row.querySelectorAll("input[type='text']").forEach((input) => { input.value = ""; });
+    row.querySelector(".exercise-done").checked = false;
+  } else {
+    row.remove();
+  }
+  updateSessionProgress();
 }
 
 function updateSessionProgress() {
   if (!activeWorkout) return;
-  let done;
-  let total;
-  if (activeWorkout.kind === "flex") {
-    done = document.querySelector("input[name='flexActivity']:checked") ? 1 : 0;
-    total = 1;
-  } else {
-    const checks = [...document.querySelectorAll("[data-session-item]")];
-    done = checks.filter((check) => check.checked).length;
-    total = checks.length;
-  }
+  const rows = [...document.querySelectorAll("[data-exercise-row]")];
+  const filledRows = rows.filter((row) => row.querySelector("[data-exercise-name]").value.trim());
+  const total = filledRows.length || rows.length;
+  const done = filledRows.filter((row) => row.querySelector(".exercise-done").checked).length;
   document.querySelector("#sessionProgressBar").style.width = `${total ? done / total * 100 : 0}%`;
   document.querySelector("#sessionProgressText").textContent = `${done} / ${total}`;
 }
@@ -394,43 +503,62 @@ function closeWorkout() {
 
 function completeWorkout() {
   if (!activeWorkout) return;
-  let record;
-  if (activeWorkout.kind === "flex") {
-    const choice = document.querySelector("input[name='flexActivity']:checked")?.value;
-    const duration = Number(document.querySelector("#flexDuration")?.value);
-    if (!choice || !duration || duration < 10) {
-      showToast("请选择活动，并填写至少 10 分钟");
-      return;
-    }
-    record = { name: choice, duration, details: "自由活动" };
-  } else {
-    const checks = [...document.querySelectorAll("[data-session-item]")];
-    const completed = checks.filter((check) => check.checked);
-    if (!completed.length) {
-      showToast("至少勾选一个已完成项目");
-      return;
-    }
-    const cardio = document.querySelector("input[name='cardioChoice']:checked")?.value || "未记录";
-    const cardioMinutes = Math.max(0, Number(document.querySelector("#cardioDuration")?.value) || 0);
-    record = {
-      name: activeWorkout.name,
-      duration: Math.round(activeWorkout.duration - 30 + cardioMinutes),
-      details: `${completed.length}/${checks.length} 项 · ${cardio} ${cardioMinutes} 分钟`
-    };
+  const name = document.querySelector("#sessionNameInput").value.trim();
+  const kind = document.querySelector("#sessionKindInput").value;
+  const duration = Number(document.querySelector("#sessionDurationInput").value);
+  const items = [...document.querySelectorAll("[data-exercise-row]")].map((row) => ({
+    name: row.querySelector("[data-exercise-name]").value.trim(),
+    detail: row.querySelector("[data-exercise-detail]").value.trim(),
+    done: row.querySelector(".exercise-done").checked
+  })).filter((item) => item.name);
+  const completedItems = items.filter((item) => item.done);
+  if (!name) {
+    showToast("先给今天的计划起个名字");
+    return;
   }
+  if (!duration || duration < 5) {
+    showToast("请填写至少 5 分钟的训练时长");
+    return;
+  }
+  if (!items.length) {
+    showToast("至少填写一个运动项目");
+    return;
+  }
+  const cardioName = document.querySelector("#cardioName")?.value.trim();
+  const cardioMinutes = Math.max(0, Number(document.querySelector("#cardioDuration")?.value) || 0);
+  const details = [`${completedItems.length}/${items.length} 项已完成`];
+  if (kind === "strength" && cardioName && cardioMinutes > 0) details.push(`${cardioName} ${cardioMinutes} 分钟`);
   state.records.push({
     id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
     planId: activeWorkout.id,
-    kind: activeWorkout.kind,
+    kind,
     date: localDateKey(),
     createdAt: Date.now(),
+    name,
+    duration,
+    details: details.join(" · "),
+    items,
+    cardio: kind === "strength" && cardioName && cardioMinutes > 0 ? { name: cardioName, minutes: cardioMinutes } : null,
+    sourceName: activeWorkout.id === "custom" ? null : activeWorkout.name,
     note: document.querySelector("#workoutNote").value.trim(),
-    ...record
   });
   saveState();
   closeWorkout();
   renderAll();
   showToast("打卡成功，今天的努力已记录");
+}
+
+function historyItemsMarkup(record) {
+  if (!Array.isArray(record.items) || !record.items.length) return "";
+  const visible = record.items.slice(0, 6);
+  const rows = visible.map((item) => `<li class="${item.done ? "done" : ""}">
+    <span>${item.done ? "✓" : "•"}</span>
+    <p><strong>${escapeHtml(item.name)}</strong>${item.detail ? `<em>${escapeHtml(item.detail)}</em>` : ""}</p>
+  </li>`).join("");
+  const more = record.items.length > visible.length
+    ? `<li class="more"><span>+</span><p>还有 ${record.items.length - visible.length} 项</p></li>`
+    : "";
+  return `<ul class="history-items">${rows}${more}</ul>`;
 }
 
 function renderHistory() {
@@ -447,14 +575,15 @@ function renderHistory() {
   document.querySelector("#monthWorkouts").textContent = monthRecords.length;
   document.querySelector("#historyRecords").innerHTML = filtered.length ? filtered.map((record) => `<article class="history-item">
     <div class="history-date">${formatDate(record.date, true)}</div>
-    <div class="history-item-main"><div><h3>${record.name}</h3><p>${record.details}</p></div><strong>${record.duration} 分钟</strong></div>
+    <div class="history-item-main"><div><h3>${escapeHtml(record.name)}</h3><p>${escapeHtml(record.details || "")}</p></div><strong>${record.duration} 分钟</strong></div>
+    ${historyItemsMarkup(record)}
     ${record.note ? `<p class="history-note">“${escapeHtml(record.note)}”</p>` : ""}
   </article>`).join("") : `<div class="empty-state"><strong>这里还很安静</strong><p>完成一次训练后，记录会按时间排列。</p></div>`;
 }
 
-function escapeHtml(value) {
+function escapeHtml(value = "") {
   const element = document.createElement("div");
-  element.textContent = value;
+  element.textContent = String(value ?? "");
   return element.innerHTML;
 }
 
@@ -492,6 +621,12 @@ function bindEvents() {
     const startButton = event.target.closest("[data-start-plan]");
     if (startButton) openWorkout(startButton.dataset.startPlan);
 
+    const addButton = event.target.closest("[data-add-exercise]");
+    if (addButton) addExerciseRow();
+
+    const removeButton = event.target.closest("[data-remove-exercise]");
+    if (removeButton) removeExerciseRow(removeButton);
+
     const expandButton = event.target.closest(".expand-button");
     if (expandButton) {
       const card = expandButton.closest(".plan-card");
@@ -508,6 +643,8 @@ function bindEvents() {
   document.querySelector("#workoutModal").addEventListener("click", (event) => {
     if (event.target.id === "workoutModal") closeWorkout();
   });
+  document.querySelector("#workoutChecklist").addEventListener("input", updateSessionProgress);
+  document.querySelector("#workoutChecklist").addEventListener("change", updateSessionProgress);
 
   document.querySelector("#profileForm").addEventListener("submit", (event) => {
     event.preventDefault();

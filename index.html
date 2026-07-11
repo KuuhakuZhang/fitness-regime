@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#19342d">
-  <meta name="description" content="一款围绕力量训练选择、灵活运动与饮食目标的手机健身打卡应用。">
+  <meta name="description" content="一款支持自定义当日训练、动作细节、灵活运动与饮食目标的手机健身打卡应用。">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="循练">
@@ -57,13 +57,13 @@
           <div class="next-card-head">
             <div>
               <span class="pill pill-light" id="nextSessionTag">力量训练</span>
-              <h2 id="nextSessionName">胸 + 中束</h2>
+              <h2 id="nextSessionName">填写今天的训练计划</h2>
             </div>
-            <span class="duration" id="nextSessionDuration">约 90 分钟</span>
+            <span class="duration" id="nextSessionDuration">自定时长</span>
           </div>
           <div class="session-flow" id="nextSessionFlow"></div>
           <button class="primary-button light-button" id="startNextWorkout" type="button">
-            开始今天的训练
+            填写今日计划
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
           </button>
         </article>
@@ -114,12 +114,12 @@
       <section class="view" id="planView" data-view="plan">
         <div class="page-heading">
           <p class="eyebrow">Your weekly plan</p>
-          <h1>力量训练菜单</h1>
-          <p>从胸、背、肩、腿中选择当天训练，也可以安排一次自由活动。</p>
+          <h1>今日计划</h1>
+          <p>可以从模板开始，也可以完全自己填写当天训练，不再被固定菜单限制。</p>
         </div>
         <div class="notice-card">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5m0 4h.01M10.3 4.4 3.2 17a2 2 0 0 0 1.7 3h14.2a2 2 0 0 0 1.7-3L13.7 4.4a2 2 0 0 0-3.4 0Z"/></svg>
-          <p>每周根据恢复情况选择 3–4 次训练。热身后进入力量动作，力量训练日结束后可安排 30–60 分钟有氧。</p>
+          <p>每周根据恢复情况安排 3–4 次训练。模板只是快捷入口，打开后可以修改、增加或删除任何动作。</p>
         </div>
         <div class="plan-list" id="planList"></div>
       </section>
@@ -303,7 +303,7 @@
         <div id="workoutChecklist"></div>
         <div class="workout-notes">
           <label for="workoutNote">训练感受</label>
-          <textarea id="workoutNote" rows="2" maxlength="120" placeholder="今天状态、重量或需要调整的地方…"></textarea>
+          <textarea id="workoutNote" rows="2" maxlength="120" placeholder="今天状态、重量、动作调整或下次要注意的地方…"></textarea>
         </div>
       </div>
       <footer class="modal-footer">

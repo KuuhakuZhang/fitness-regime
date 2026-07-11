@@ -1,4 +1,4 @@
-const CACHE_NAME = "xunlian-v3";
+const CACHE_NAME = "xunlian-v4";
 const APP_SHELL = [
   "./",
   "./index.html",
