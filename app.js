@@ -97,6 +97,113 @@ const workoutPlans = [
     ]
   },
   {
+    id: "power",
+    kind: "power",
+    tag: "专项能力",
+    short: "爆",
+    name: "爆发力训练",
+    subtitle: "足球启动、变向与攀岩动态发力",
+    duration: 70,
+    sections: [
+      { title: "动态热身与神经激活", items: [
+        ["踝膝髋动态活动", "2 × 45 秒"],
+        ["A Skip / 高抬腿", "2 × 20 米"],
+        ["弹力带肩胛激活", "2 × 12"]
+      ]},
+      { title: "爆发力主项", items: [
+        ["箱跳 / 立定跳远", "5 × 3"],
+        ["药球砸地 / 胸前抛", "4 × 5"],
+        ["10–20 米冲刺", "6 组"],
+        ["侧向变向跨步", "4 × 5 / 侧"]
+      ]},
+      { title: "攀岩专项", items: [
+        ["爆发上拉 / 引体向上", "4 × 3–5"],
+        ["轻量指力悬挂", "5 × 7 秒"],
+        ["悬垂屈膝 / 死虫", "3 × 10"]
+      ]}
+    ]
+  },
+  {
+    id: "endurance",
+    kind: "endurance",
+    tag: "专项能力",
+    short: "耐",
+    name: "耐力训练",
+    subtitle: "足球、爬山、徒步与攀岩持续输出",
+    duration: 80,
+    sections: [
+      { title: "热身与节奏建立", items: [
+        ["轻松慢跑 / 快走", "8–10 分钟"],
+        ["动态腿摆与踝关节活动", "每侧 45 秒"],
+        ["鼻吸口呼节奏练习", "3 分钟"]
+      ]},
+      { title: "心肺耐力", items: [
+        ["足球间歇跑", "6 × 3 分钟"],
+        ["Zone 2 爬坡 / 徒步", "45–75 分钟"],
+        ["台阶上坡 / 负重行走", "4 × 8 分钟"]
+      ]},
+      { title: "攀岩耐力", items: [
+        ["横移 Traversing", "4 × 6 分钟"],
+        ["低难度连续线路", "3–5 条"],
+        ["前臂放松与甩手恢复", "每组 60 秒"]
+      ]}
+    ]
+  },
+  {
+    id: "balance",
+    kind: "balance",
+    tag: "专项能力",
+    short: "衡",
+    name: "平衡性训练",
+    subtitle: "足踝稳定、单腿控制与核心抗旋转",
+    duration: 50,
+    sections: [
+      { title: "足踝与核心激活", items: [
+        ["足底放松与短足训练", "2 × 45 秒"],
+        ["髋外展弹力带侧走", "3 × 12 / 侧"],
+        ["死虫 / 鸟狗", "3 × 8 / 侧"]
+      ]},
+      { title: "平衡主项", items: [
+        ["单脚站姿触地", "3 × 8 / 侧"],
+        ["单腿罗马尼亚硬拉", "3 × 10 / 侧"],
+        ["软垫深蹲停留", "3 × 30 秒"],
+        ["侧向弓步转体", "3 × 8 / 侧"]
+      ]},
+      { title: "专项转化", items: [
+        ["单脚落地稳定", "4 × 5 / 侧"],
+        ["攀岩静态换脚", "4 × 60 秒"],
+        ["平板支撑交替摸肩", "3 × 20"]
+      ]}
+    ]
+  },
+  {
+    id: "mobility",
+    kind: "mobility",
+    tag: "恢复能力",
+    short: "柔",
+    name: "柔韧性训练",
+    subtitle: "髋、踝、胸椎与肩背活动度恢复",
+    duration: 45,
+    sections: [
+      { title: "呼吸与放松", items: [
+        ["90/90 呼吸", "3 分钟"],
+        ["猫牛式与婴儿式", "2 × 60 秒"],
+        ["泡沫轴放松小腿 / 股四头", "每处 60 秒"]
+      ]},
+      { title: "下肢柔韧", items: [
+        ["髋屈肌拉伸", "2 × 60 秒 / 侧"],
+        ["腘绳肌动态拉伸", "2 × 10 / 侧"],
+        ["踝背屈活动", "3 × 10 / 侧"],
+        ["90/90 髋旋转", "2 × 8 / 侧"]
+      ]},
+      { title: "上肢与脊柱", items: [
+        ["胸椎开书式旋转", "2 × 8 / 侧"],
+        ["背阔肌墙面拉伸", "2 × 45 秒"],
+        ["肩胛绕环与肩外旋", "2 × 12"]
+      ]}
+    ]
+  },
+  {
     id: "flex",
     kind: "flex",
     tag: "自由活动 · 可选",
@@ -109,6 +216,14 @@ const workoutPlans = [
 ];
 
 const cardioChoices = ["爬坡", "游泳", "水中行走", "椭圆机"];
+const trainingTypes = [
+  ["strength", "力量训练"],
+  ["power", "爆发力训练"],
+  ["endurance", "耐力训练"],
+  ["balance", "平衡性训练"],
+  ["mobility", "柔韧性训练"],
+  ["flex", "自由活动"]
+];
 const customPlanTemplate = {
   id: "custom",
   kind: "strength",
@@ -172,6 +287,16 @@ function workoutById(planId) {
   return planId === "custom" ? customWorkout() : workoutPlans.find((item) => item.id === planId);
 }
 
+function trainingTypeOptionsMarkup(selectedType) {
+  return trainingTypes.map(([value, label]) => (
+    `<option value="${value}" ${value === selectedType ? "selected" : ""}>${label}</option>`
+  )).join("");
+}
+
+function supportsCardioEditor(plan) {
+  return plan.kind === "strength" || plan.id === "custom";
+}
+
 function planExerciseItems(plan) {
   if (plan.id === "custom") return [{ name: "", detail: "", done: false }];
   if (plan.kind === "flex") {
@@ -214,11 +339,16 @@ function navigate(viewName) {
 }
 
 function flowMarkup(plan) {
-  const flows = plan.id === "custom"
-    ? [["计划", "M6 4h12v16H6zM9 8h6M9 12h6M9 16h4"], ["填写", "m4 16-.8 4 4-.8L18 8.4 15.6 6 4 16Z"], ["打卡", "m5 12 4 4L19 6"]]
-    : plan.kind === "flex"
-    ? [["选择", "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-13v4l3 2"], ["畅动", "M7 17 10 7l4 10 3-8"], ["恢复", "M12 20c4-3 7-6 7-11-4 0-6 2-7 4-1-2-3-4-7-4 0 5 3 8 7 11Z"]]
-    : [["拉伸", "M5 12h14M8 8l-3 4 3 4m8-8 3 4-3 4"], ["力量", "M7 7v10m10-10v10M4 10v4m16-4v4M7 12h10"], ["有氧", "M4 14h3l2-5 4 9 2-6h5"]];
+  const flowMap = {
+    custom: [["计划", "M6 4h12v16H6zM9 8h6M9 12h6M9 16h4"], ["填写", "m4 16-.8 4 4-.8L18 8.4 15.6 6 4 16Z"], ["打卡", "m5 12 4 4L19 6"]],
+    flex: [["选择", "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-13v4l3 2"], ["畅动", "M7 17 10 7l4 10 3-8"], ["恢复", "M12 20c4-3 7-6 7-11-4 0-6 2-7 4-1-2-3-4-7-4 0 5 3 8 7 11Z"]],
+    power: [["激活", "M5 12h14M12 5v14"], ["爆发", "m13 3-2 7h5l-7 11 2-8H7l6-10Z"], ["专项", "M4 17 9 7l4 10 3-8 4 5"]],
+    endurance: [["热身", "M4 17c3-6 7-6 10-1 2 3 4 3 6 1"], ["稳态", "M4 14h3l2-5 4 9 2-6h5"], ["恢复", "M5 19c5-2 9-6 12-14"]],
+    balance: [["控制", "M12 4v16M7 9h10M6 20h12"], ["单腿", "M9 20l3-8 3 8M12 12V4"], ["核心", "M5 12c2-5 12-5 14 0-2 5-12 5-14 0Z"]],
+    mobility: [["呼吸", "M7 15c-2-5 3-9 5-11 2 2 7 6 5 11-1 3-4 5-5 5s-4-2-5-5Z"], ["拉伸", "M5 12h14M8 8l-3 4 3 4m8-8 3 4-3 4"], ["恢复", "M12 20c4-3 7-6 7-11-4 0-6 2-7 4-1-2-3-4-7-4 0 5 3 8 7 11Z"]],
+    strength: [["拉伸", "M5 12h14M8 8l-3 4 3 4m8-8 3 4-3 4"], ["力量", "M7 7v10m10-10v10M4 10v4m16-4v4M7 12h10"], ["有氧", "M4 14h3l2-5 4 9 2-6h5"]]
+  };
+  const flows = flowMap[plan.id === "custom" ? "custom" : plan.kind] || flowMap.strength;
   return flows.map(([label, path]) => `
     <div class="flow-item">
       <span class="flow-icon"><svg viewBox="0 0 24 24"><path d="${path}"/></svg></span>
@@ -314,9 +444,12 @@ function renderPlanList() {
     </div>
   </article>`;
   const templateCards = workoutPlans.map((plan, index) => {
+    const cardioDetail = plan.kind === "strength"
+      ? `<div class="detail-section"><h3>练后有氧</h3><div class="detail-line"><span>爬坡 / 游泳 / 水中行走等</span><span>可改可删</span></div></div>`
+      : "";
     const details = plan.kind === "flex"
       ? `<div class="detail-section"><h3>常用灵感</h3>${plan.activities.map((item) => `<div class="detail-line"><span>${item}</span><span>打开后可改</span></div>`).join("")}</div>`
-      : plan.sections.map((section) => `<div class="detail-section"><h3>${section.title}</h3>${section.items.map(([name, dose]) => `<div class="detail-line"><span>${name}</span><span>${dose}</span></div>`).join("")}</div>`).join("") + `<div class="detail-section"><h3>练后有氧</h3><div class="detail-line"><span>爬坡 / 游泳 / 水中行走等</span><span>可改可删</span></div></div>`;
+      : plan.sections.map((section) => `<div class="detail-section"><h3>${section.title}</h3>${section.items.map(([name, dose]) => `<div class="detail-line"><span>${name}</span><span>${dose}</span></div>`).join("")}</div>`).join("") + cardioDetail;
     return `<article class="plan-card ${completed.has(plan.id) ? "complete" : ""}" data-plan-card="${plan.id}">
       <div class="plan-card-top">
         <span class="plan-index">${String(index + 1).padStart(2, "0")}</span>
@@ -404,8 +537,7 @@ function openWorkout(planId) {
         <label class="editor-field">
           <span>训练类型</span>
           <select id="sessionKindInput">
-            <option value="strength" ${plan.kind !== "flex" ? "selected" : ""}>力量训练</option>
-            <option value="flex" ${plan.kind === "flex" ? "selected" : ""}>自由活动</option>
+            ${trainingTypeOptionsMarkup(plan.kind)}
           </select>
         </label>
         <label class="editor-field">
@@ -423,7 +555,7 @@ function openWorkout(planId) {
         ${items.map((item, index) => exerciseRowMarkup(item, index)).join("")}
       </div>
     </section>
-    ${plan.kind === "flex" ? "" : cardioEditorMarkup()}
+    ${supportsCardioEditor(plan) ? cardioEditorMarkup() : ""}
   `;
   document.querySelector("#workoutModal").hidden = false;
   document.body.style.overflow = "hidden";
